@@ -1,10 +1,48 @@
 import os
 
-from oauthenticator.google import GoogleOAuthenticator
-c.JupyterHub.authenticator_class = GoogleOAuthenticator
-c.GoogleOAuthenticator.oauth_callback_url = 'http://server_url.com/hub/oauth_callback'
-c.GoogleOAuthenticator.client_id = ''
-c.GoogleOAuthenticator.client_secret = ''
+#from oauthenticator.google import GoogleOAuthenticator
+#c.JupyterHub.authenticator_class = GoogleOAuthenticator
+#c.GoogleOAuthenticator.oauth_callback_url = 'http://server_url.com/hub/oauth_callback'
+#c.GoogleOAuthenticator.client_id = ''
+#c.GoogleOAuthenticator.client_secret = ''
+
+
+###############################################################################################
+
+c.Authenticator.admin_users = {'bb-admin','ubuntu'}
+c.NotebookApp.tornado_settings = {
+    'headers': {
+        'Content-Security-Policy': "frame-ancestors http://*:* 'self' "
+    }
+ }
+c.NotebookApp.ip = '*'
+c.NotebookApp.allow_origin = '*'
+c.NotebookApp.open_browser = False
+#Authentication config
+from tornado import gen
+from IPython.utils.traitlets import Dict
+from jupyterhub.auth import Authenticator
+class BBAuthenticator(Authenticator):
+    @gen.coroutine
+    def authenticate(self, handler, data):
+        if data['password'] == "R@z0rth!nk":
+            return data['username']
+        return None
+c.JupyterHub.proxy_api_port = 8009
+c.JupyterHub.authenticator_class = BBAuthenticator
+
+
+
+
+
+##############################################################################################
+
+
+
+
+
+
+
 
 ## The public facing port of the proxy
 c.JupyterHub.port = 8000
@@ -23,19 +61,21 @@ c.SwarmSpawner.networks = ["jupyterhub"]
 notebook_dir = os.environ.get('NOTEBOOK_DIR') or '/home/jovyan/work'
 c.SwarmSpawner.notebook_dir = notebook_dir
 
-mounts = [{'type': 'volume',
-           'source': 'jupyterhub-user-{username}',
-           'target': notebook_dir,
-        'no_copy' : True,
-        'driver_config' : {
-          'name' : 'local',
-          'options' : {
-             'type' : 'nfs4',
-             'o' : 'addr=SERVER_IP,rw',
-             'device' : ':/var/nfs/{username}/'
-           }
-        },
-}]
+#mounts = [{'type': 'volume',
+#           'source': 'jupyterhub-user-{username}',
+#           'target': notebook_dir,
+#        'no_copy' : True,
+#        'driver_config' : {
+#          'name' : 'local',
+#          'options' : {
+#             'type' : 'nfs4',
+#             'o' : 'addr=SERVER_IP,rw',
+#             'device' : ':/var/nfs/{username}/'
+#           }
+#        },
+#}]
+
+mounts = []
 
 c.SwarmSpawner.container_spec = {
     # The command to run inside the service
